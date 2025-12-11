@@ -1,0 +1,253 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width,initial-scale=1" />
+<title>For My Love — Complete Fixed</title>
+<style>
+:root{ --pink:#ffd0e6; --pink2:#ffb3d9; --accent:#c4006e; }
+body{ margin:0; font-family:"Cairo",sans-serif; background:var(--pink); color:#222; overflow-x:hidden; }
+
+/* floating hearts */
+.heart{ position:fixed; font-size:24px; color:#ff4fa3; animation:floatUp linear infinite; opacity:.9; pointer-events:none; z-index:5; }
+@keyframes floatUp{ 0%{ transform:translateY(0) } 100%{ transform:translateY(-120vh); opacity:0 } }
+
+/* black overlay */
+#blackScreen{ position:fixed; inset:0; background:#000; opacity:0; transition:opacity .8s ease; pointer-events:none; z-index:50; }
+
+/* common center */
+.center{ min-height:100vh; display:flex; align-items:center; justify-content:center; flex-direction:column; gap:18px; background:var(--pink2); box-sizing:border-box; padding:40px; }
+
+/* password */
+.fancy-prompt{ font-size:28px; font-weight:800; color:var(--accent); }
+#pass{ padding:12px; width:260px; border-radius:10px; border:none; font-size:18px; text-align:center; }
+#passBtn{ padding:10px 26px; border-radius:12px; border:none; background:#ff66b3; color:#fff; font-weight:800; cursor:pointer; }
+
+/* intro / final text */
+#introText, #finalText{
+    display:none;
+    position:relative;
+    z-index:20;
+    min-height:100vh;
+    padding:80px 20px 20px 20px;
+    box-sizing:border-box;
+    text-align:center;
+    background:var(--pink);
+    overflow:hidden;
+}
+.word{
+    opacity:0;
+    transform:translateY(8px);
+    transition:all .45s cubic-bezier(.2,.9,.2,1);
+    font-size:28px;
+    font-weight:800;
+    color:var(--accent);
+    margin:12px 0;
+    line-height:1.3;
+    z-index:25;
+    display:block;
+    white-space:pre-wrap;
+}
+.word.show{ opacity:1; transform:translateY(0); }
+
+/* Next button */
+.next-btn { display: inline-block !important; margin: 30px auto 0; padding: 12px 34px; font-size: 20px; border-radius: 14px; background: #ff4fa3; color: white; border:none; cursor:pointer; z-index:30; }
+
+/* photos gallery */
+#photosPage{ display:none; position:relative; z-index:15; min-height:100vh; padding:40px; background:#ffd6e8; box-sizing:border-box; text-align:center; }
+.gallery{ display:flex; flex-direction:column; gap:18px; align-items:center; max-width:100%; }
+.photo-box{ background:#fff; border-radius:14px; box-shadow:0 12px 30px rgba(0,0,0,0.08); padding:10px; width:340px; display:flex; flex-direction:column; align-items:center; }
+.photo-box img{ width:100%; height:auto; max-height:360px; object-fit:cover; border-radius:10px; display:block; }
+.comment{ margin-top:12px; font-size:20px; font-weight:800; color:var(--accent); }
+
+/* responsive */
+@media (max-width:800px){ .photo-box{ width:72%; } .word{ font-size:20px; } }
+@media (max-width:480px){ .photo-box{ width:92%; } .word{ font-size:18px; } #pass{ width:200px; } }
+</style>
+</head>
+<body>
+
+<!-- زر تشغيل الموسيقى -->
+<button id="playMusicBtn" style="
+    position:fixed;
+    top:10px;
+    left:50%;
+    transform:translateX(-50%);
+    padding:10px 20px;
+    font-size:16px;
+    background:#ff66b3;
+    color:white;
+    border:none;
+    border-radius:8px;
+    cursor:pointer;
+    z-index:100;">
+    شغل الموسيقى 🎵
+</button>
+
+<!-- background music -->
+<audio id="bgm" loop>
+    <source src="music.mp3" type="audio/mp3">
+</audio>
+
+<!-- floating hearts -->
+<script>
+setInterval(()=>{
+    const h = document.createElement('div');
+    h.className='heart';
+    h.style.left=(Math.random()*90)+'vw';
+    h.style.top=(85 + Math.random()*15)+'vh';
+    h.style.animationDuration = (3 + Math.random()*4)+'s';
+    h.textContent='❤';
+    document.body.appendChild(h);
+    setTimeout(()=> h.remove(), 9000);
+}, 360);
+</script>
+
+<script>
+const bgm = document.getElementById('bgm');
+const btn = document.getElementById('playMusicBtn');
+btn.addEventListener('click', ()=>{
+    bgm.play().catch(e=>console.log('موسيقى مش شغالة:', e));
+    btn.style.display = 'none';
+});
+</script>
+
+<div id="blackScreen"></div>
+
+<!-- PASSWORD SCREEN -->
+<section id="passwordScreen" class="center">
+    <div class="fancy-prompt">ℰ𝓃𝓉ℯ𝓇 𝓅𝒶𝓈𝓈𝓌ℴ𝓇𝒹 𝓉ℴ 𝓊𝓃𝓁ℴ𝒸𝓀</div>
+    <input id="pass" placeholder="اكتب الباسورد هنا" autocomplete="off" />
+    <button id="passBtn" onclick="checkPass()">Enter</button>
+    <div style="font-size:13px;color:#6b0050;margin-top:6px;">(اضغط Enter بعد كتابة الباسورد)</div>
+</section>
+
+<!-- INTRO -->
+<section id="introText">
+    <div id="introLinesContainer" aria-live="polite"></div>
+    <button id="introNext" class="next-btn" onclick="goPhotos()" style="display:none;">Next</button>
+</section>
+
+<!-- PHOTOS PAGE -->
+<section id="photosPage">
+    <div class="gallery" id="gallery">
+        <div class="photo-box">
+            <img src="images/pic1.jpg" alt="pic1">
+            <div class="comment">ده شكلنا واحنا لسه متعرفين على بعض ❤️</div>
+        </div>
+        <div class="photo-box">
+            <img src="images/pic2.jpg" alt="pic2">
+            <div class="comment">وده شكلك ونت مكسوفه مني ❤️</div>
+        </div>
+        <div class="photo-box">
+            <img src="images/pic3.jpg" alt="pic3">
+            <div class="comment">ده شكلنا وانا بنحب بعض ❤️</div>
+        </div>
+    </div>
+    <button id="photosNext" class="next-btn" onclick="goFinal()">Next</button>
+</section>
+
+<!-- FINAL -->
+<section id="finalText">
+    <div id="finalLinesContainer" aria-live="polite"></div>
+</section>
+
+<script>
+function fadeToNext(callback){
+    const overlay = document.getElementById('blackScreen');
+    overlay.style.opacity = '1';
+    setTimeout(()=>{
+        callback();
+        setTimeout(()=> overlay.style.opacity='0', 170);
+    }, 600);
+}
+
+/* password handling */
+const passInput = document.getElementById('pass');
+passInput.addEventListener('keyup', (e)=> { if(e.key === 'Enter') checkPass(); });
+function checkPass(){
+    const v = passInput.value.trim();
+    if(v.toLowerCase() === 'b7b layan'.toLowerCase()){
+        fadeToNext(()=>{
+            document.getElementById('passwordScreen').style.display = 'none';
+            startIntro();
+        });
+    } else { alert('الباسورد غلط، جرّب تاني يا قلبي'); }
+}
+
+/* typeLines */
+function typeLines(lines, containerEl, nextBtnEl, delayBetween=900, charSpeed=28){
+    containerEl.innerHTML = '';
+    if(containerEl.parentElement){ containerEl.parentElement.style.display='block'; }
+    let i=0;
+    function showLine(){
+        if(i>=lines.length){ if(nextBtnEl) nextBtnEl.style.display='inline-block'; return; }
+        const line = lines[i] ?? '';
+        const div = document.createElement('div'); div.className='word';
+        containerEl.appendChild(div);
+        let c=0;
+        const typer = setInterval(()=>{
+            div.textContent += line[c] ?? '';
+            c++;
+            if(c>=line.length){
+                clearInterval(typer);
+                setTimeout(()=>div.classList.add('show'),20);
+                i++;
+                setTimeout(showLine,delayBetween);
+            }
+        },charSpeed);
+    }
+    showLine();
+}
+
+/* INTRO */
+function startIntro(){
+    const introContainer = document.getElementById('introLinesContainer');
+    introContainer.innerHTML='';
+    document.getElementById('introText').style.display='block';
+    document.getElementById('introNext').style.display='none';
+    const introLines=[
+        "بحبك روحي…",
+        "ومش هسيبك…",
+        "عامل كل ده ليكي…",
+        "وإنتي بتاعتي وأنا بتاعك…",
+        "مقدرش أعيش من غيرك…",
+        "حطي إيدك في إيديا…",
+        "يلا بينا ناخد لفّة جوه الموقع…"
+    ];
+    typeLines(introLines,introContainer,document.getElementById('introNext'),1000,28);
+}
+
+/* PHOTOS */
+function goPhotos(){
+    fadeToNext(()=>{
+        document.getElementById('introText').style.display='none';
+        document.getElementById('introNext').style.display='none';
+        document.getElementById('photosPage').style.display='block';
+        document.getElementById('photosNext').style.display='inline-block';
+        window.scrollTo({top:0,behavior:'instant'});
+    });
+}
+
+/* FINAL */
+function goFinal(){
+    fadeToNext(()=>{
+        document.getElementById('photosPage').style.display='none';
+        const finalSection=document.getElementById('finalText');
+        finalSection.style.display='block';
+        const finalContainer=document.getElementById('finalLinesContainer');
+        finalContainer.innerHTML='';
+        const finalLines=[
+            "ليونتي...",
+            "بحبك انتِ وبس ومليش غيرك ابدا يا روح قلبي ❤️",
+            "ولو اجمل واحدة جت هسيبها وأختارك لأنك في عيني أجمل واحدة ممكن أشوفها 🥺💗",
+            "وبحبك تاني وتالت ومقدرش أسيبك يا عمري، وهفضل أحبك برضو..",
+            "ولا واحدة هتيجي بدلِك يا حياتي"
+        ];
+        typeLines(finalLines,finalContainer,null,1100,28);
+        window.scrollTo({top:0,behavior:'instant'});
+    });
+}
+</script>
+</body>
+</html>
